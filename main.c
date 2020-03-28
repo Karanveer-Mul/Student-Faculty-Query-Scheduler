@@ -89,7 +89,7 @@ void merged_queue()
         isc++;
         mc++;
       }
-      else
+      else if(f[ifc].at<s[isc].at)
       {
         m[mc]=f[ifc];
         ifc++;
@@ -140,9 +140,10 @@ void round_robin()
 {
   int time_quantum;
   int left=n;//number of unresolved queries left 
-  bool idle=1;//CPU initally idle
+  bool idle=0;//CPU idle status
   printf("\nEnter the time quantum:");
   scanf("%d",&time_quantum);
+  printf("\n\n\t***Order of execution***\n");
   for(time=m[0].at,mc=0;left!=0;)//loop until no unresolved query is left
   {
   	
@@ -156,11 +157,14 @@ void round_robin()
       total_waiting_time += m[mc].wt;
       total_turnaround_time += m[mc].tt;
       left--;
+      printf("%d ",m[mc].pid);
     }
     else if(m[mc].rt>time_quantum)//if remaining time is greater than time quantum
     {
       time += time_quantum;
       m[mc].rt -= time_quantum;
+      printf("%d ",m[mc].pid);
+      idle=0;
     }
 
     if(mc==n-1)//if merged queue counter is at the last process
@@ -175,7 +179,6 @@ void round_robin()
     {
       time = m[mc+1].at;
       mc++;
-      idle=0;
     }
     else
     {
@@ -200,8 +203,9 @@ void display()
 void main()
 {
 	input();
-	merged_queue();
+	merged_queue();	
 	round_robin();
+	printf("\n");
 	display();
 	printf("\n\n\t***Finished scheduling***");
 }
