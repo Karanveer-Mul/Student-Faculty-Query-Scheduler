@@ -2,16 +2,16 @@
 #include<stdbool.h>
 struct querie
 {
-  int pid;
-  int at;
-  int bt;
-  int rt;
-  int wt;
-  int tt;
-}f[50],s[50],m[100]; //faculty queue, student queue, merged queue
+  int pid;//process id
+  int at;//arrival time of process
+  int bt;//burst time of process
+  int rt;//remaing time of process
+  int wt;//wait time of process
+  int tt;//turnaround time of process
+}f[1000],s[1000],m[2000]; //faculty queue, student queue, merged queue
 
-int fc=0,sc=0,mc=0;
-int n,time;
+int fc=0,sc=0,mc=0;//faculty counter, student counter, merged queue counter
+int n,time;//nuber of processes, total time of execution
 int total_waiting_time=0,total_turnaround_time=0;
 
 void input()
@@ -34,8 +34,8 @@ void input()
       scanf("%d",&f[fc].at);
       if(f[fc].at<1000 || f[fc].at>1200)
       {
-        printf("Enter a valid arrival time");
-        i--;
+        printf("\n\t***Enter a valid arrival time***\n\n");
+        i--;//if we decrement i and continue, we are basically letting the user to go back to same iteration of i
         continue;
       }
       printf("\nEnter the amount of burst time(in mins)\n");
@@ -53,8 +53,8 @@ void input()
       scanf("%d",&s[sc].at);
       if(s[sc].at<1000 || s[sc].at>1200)
       {
-        printf("Enter a valid arrival time");
-        i--;
+        printf("\n\t***Enter a valid arrival time***\n\n");
+        i--;//if we decrement i and continue, we are basically letting the user to go back to same iteration of i
         continue;
       }
 	  printf("\nEnter the amount of burst time(in mins)\n");
@@ -65,28 +65,23 @@ void input()
     }
     else {
       printf("\n***Plese enter a valid type for querie***\n");
-      i--;
+      i--;//if we decrement i, we are basically letting the user to go back to same iteration of i
     }
   }
 }
 
 void merged_queue()
 {
-  int ifc=0,isc=0;
+  int ifc=0,isc=0;//faculty iterator, student iterator
   if(fc!=0 && sc !=0)
   {
-    while(ifc<fc && isc<sc)
+    while(ifc<fc && isc<sc)//since at the end of loop we will have either ifc == fc or isc == sc and neither f[ifc] nor s[isc] will exist and will throw error
     {
       if(f[ifc].at == s[isc].at)
       {
         m[mc]=f[ifc];
         ifc++;
         mc++;
-        /*
-        m[mc]=s[isc];
-        isc++;
-        mc++;
-        */
       }
       else if(f[ifc].at>s[isc].at)
       {
@@ -121,7 +116,7 @@ void merged_queue()
     }
   }
 
-  else if(fc==0)
+  else if(fc==0)//if no faculty query exists
   {
     while(isc!=sc)
     {
@@ -130,7 +125,7 @@ void merged_queue()
       mc++;
     }
   }
-  else if(sc==0)
+  else if(sc==0)//if no student query exists
   {
     while(ifc!=fc)
     {
@@ -143,15 +138,15 @@ void merged_queue()
 
 void round_robin()
 {
-  int time_quantum,flag=0;
-  int left=n;
-  bool idle=0;
+  int time_quantum;
+  int left=n;//number of unresolved queries left 
+  bool idle=1;//CPU initally idle
   printf("\nEnter the time quantum:");
   scanf("%d",&time_quantum);
-  for(time=m[0].at,mc=0;left!=0;)
+  for(time=m[0].at,mc=0;left!=0;)//loop until no unresolved query is left
   {
   	
-    if(m[mc].rt<=time_quantum && m[mc].rt!=0)
+    if(m[mc].rt<=time_quantum && m[mc].rt!=0)//if remaining time is less than time quantum
     {
       time += m[mc].rt;
       m[mc].rt = 0;
@@ -161,24 +156,22 @@ void round_robin()
       total_waiting_time += m[mc].wt;
       total_turnaround_time += m[mc].tt;
       left--;
-      printf("%d",mc);
     }
-    else if(m[mc].rt>time_quantum)
+    else if(m[mc].rt>time_quantum)//if remaining time is greater than time quantum
     {
       time += time_quantum;
       m[mc].rt -= time_quantum;
-      printf("%d",mc);
     }
 
-    if(mc==n-1)
+    if(mc==n-1)//if merged queue counter is at the last process
     {
       mc = 0;
     }
-    else if(m[mc+1].at<time)
+    else if(m[mc+1].at<time)//if next process has already arrived
     {
       mc++;
     }
-    else if(idle == 1 && m[mc+1].at>time && m[mc-1].rt==0)
+    else if(idle == 1 && m[mc+1].at>time && m[mc-1].rt==0)//if CPU idle and previous processes have already executed, then jump to next process
     {
       time = m[mc+1].at;
       mc++;
