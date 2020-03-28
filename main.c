@@ -1,5 +1,5 @@
 #include<stdio.h>
-
+#include<stdbool.h>
 struct querie
 {
   int pid;
@@ -8,20 +8,22 @@ struct querie
   int rt;
   int wt;
   int tt;
-};f[50],s[50],m[100] //faculty queue, student queue, merged queue
+}f[50],s[50],m[100]; //faculty queue, student queue, merged queue
 
 int fc=0,sc=0,mc=0;
-int n;
+int n,time;
 int total_waiting_time=0,total_turnaround_time=0;
 
 void input()
 {
   int type;
-  printf("/nEnter the number of processes:");
+  printf("Please enter the number of processes:");
   scanf("%d",&n);
-  for(int i=0;i<n;i++)
+  int i;
+  for(i=0;i<n;i++)
   {
-    printf("Enter 1 for faculty querie and 2 for student querie:");
+    printf("\n\t***Enter 1 for faculty querie and 2 for student querie***\n");
+    printf("\nType(1/2):");
     scanf("%d",&type);
     if(type==1)
     {
@@ -30,16 +32,13 @@ void input()
       printf("\nFormat for arrival time 0000 hrs (For example 11:45 as 1145)\n");
       printf("\nArrival time:");
       scanf("%d",&f[fc].at);
-      if(f[fc].at<1000 || f[fc]>1200)
+      if(f[fc].at<1000 || f[fc].at>1200)
       {
         printf("Enter a valid arrival time");
         i--;
         continue;
       }
-      else
-      {
-        f[fc].at = f[fc].at - 1000;
-      }
+      printf("\nEnter the amount of burst time(in mins)\n");
       printf("\nBurst time:");
       scanf("%d",&f[fc].bt);
       f[fc].rt=f[fc].bt;
@@ -52,20 +51,20 @@ void input()
       printf("\nFormat for arrival time 0000 hrs (For example 11:45 as 1145)\n");
       printf("\nArrival time:");
       scanf("%d",&s[sc].at);
-      if(s[sc].at<1000 || s[sc]>1200)
+      if(s[sc].at<1000 || s[sc].at>1200)
       {
         printf("Enter a valid arrival time");
         i--;
         continue;
       }
-
+	  printf("\nEnter the amount of burst time(in mins)\n");
       printf("\nBurst time:");
       scanf("%d",&s[sc].bt);
       s[sc].rt=s[sc].bt;
       sc++;
     }
     else {
-      printf("Plese enter a valid type for querie")
+      printf("\n***Plese enter a valid type for querie***\n");
       i--;
     }
   }
@@ -76,16 +75,18 @@ void merged_queue()
   int ifc=0,isc=0;
   if(fc!=0 && sc !=0)
   {
-    while(ifc<=fc && isc<=sc)
+    while(ifc<fc && isc<sc)
     {
       if(f[ifc].at == s[isc].at)
       {
         m[mc]=f[ifc];
         ifc++;
         mc++;
+        /*
         m[mc]=s[isc];
         isc++;
         mc++;
+        */
       }
       else if(f[ifc].at>s[isc].at)
       {
@@ -100,7 +101,7 @@ void merged_queue()
         mc++;
       }
     }
-    else if(fc==(ifc-1))
+    if(fc==ifc)
     {
       while(isc!=sc)
       {
@@ -109,7 +110,7 @@ void merged_queue()
         mc++;
       }
     }
-    else if(sc==(isc-1))
+    else if(sc==isc)
     {
       while(ifc!=fc)
       {
@@ -142,31 +143,31 @@ void merged_queue()
 
 void round_robin()
 {
-  int time_quantum,time,flag=0;
+  int time_quantum,flag=0;
   int left=n;
-  printf("\nEnter the time quantum:")
+  bool idle=0;
+  printf("\nEnter the time quantum:");
   scanf("%d",&time_quantum);
-  for(time=0,mc=0;left!=0;)
+  for(time=m[0].at,mc=0;left!=0;)
   {
+  	
     if(m[mc].rt<=time_quantum && m[mc].rt!=0)
     {
-      time += m[mc]rt;
+      time += m[mc].rt;
       m[mc].rt = 0;
-      flag = 1;
+      idle=1;
+      m[mc].wt += time-(m[mc].at+m[mc].bt);
+      m[mc].tt += time-(m[mc].at);
+      total_waiting_time += m[mc].wt;
+      total_turnaround_time += m[mc].tt;
+      left--;
+      printf("%d",mc);
     }
     else if(m[mc].rt>time_quantum)
     {
       time += time_quantum;
       m[mc].rt -= time_quantum;
-    }
-    if(m[mc].rt==0 && flag==1)
-    {
-      m[mc].wt += time-(m[mc].at+m[mc].bt);
-      m[mc].tt += time-(m[mc].at);
-      total_waiting_time += m[mc].wt;
-      total_turnaround_time += m[mc].tt;
-      flag=0;
-      left--;
+      printf("%d",mc);
     }
 
     if(mc==n-1)
@@ -177,9 +178,37 @@ void round_robin()
     {
       mc++;
     }
+    else if(idle == 1 && m[mc+1].at>time && m[mc-1].rt==0)
+    {
+      time = m[mc+1].at;
+      mc++;
+      idle=0;
+    }
     else
     {
       mc = 0;
     }
   }
+}
+
+void display()
+{
+  int i;
+  printf("\nProcess id | Burst Time | Arrival Time | Waiting Time | Turnaround Time\n");
+  for(i=0;i<n;i++)
+  {
+    printf("\n%d\t\t%d\t\t%d\t\t%d\t\t%d",m[i].pid,m[i].bt,m[i].at,m[i].wt,m[i].tt);
+  }
+  printf("\n\n\nTotal time spent:%d", (time-m[mc].at));
+  printf("\nAverage waiting time:%d",(total_waiting_time/n));
+  printf("\nAverage turnaround time:%d",(total_turnaround_time/n));
+}
+
+void main()
+{
+	input();
+	merged_queue();
+	round_robin();
+	display();
+	printf("\n\n\t***Finished scheduling***");
 }
