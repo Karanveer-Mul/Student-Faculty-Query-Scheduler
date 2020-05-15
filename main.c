@@ -171,7 +171,7 @@ void round_robin()
     {
       mc = 0;
     }
-    else if(m[mc+1].at<time)//if next process has already arrived
+    else if(m[mc+1].at<=time)//if next process has already arrived
     {
       mc++;
     }
